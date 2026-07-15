@@ -7,9 +7,8 @@ const WEBHOOK_ESTADISTICAS = "https://discord.com/api/webhooks/15270447988071507
 
 const CLAVE_STAFF = "76:676:6";
 
-// Esta es tu base de datos global y gratuita en la nube (KVDB). 
-// Usamos un ID único para tu evento para que nadie más acceda a tus contadores.
-const KVDB_BUCKET = "https://kvdb.io/8x9p3N4pZ9Yp6R2mYQ4Z9d/"; // ID único generado para tu evento
+// Bucket de base de datos en la nube (KVDB)
+const KVDB_BUCKET = "https://kvdb.io/8x9p3N4pZ9Yp6R2mYQ4Z9d/";
 
 // ==========================================
 // LOGICA INTERNA DEL SISTEMA
@@ -23,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateCreatorFields();
 });
 
-// Funciones para guardar y obtener datos reales de internet (Sincronizado mundialmente)
+// Funciones para obtener y guardar datos en la nube (Seguras contra 404)
 async function obtenerContadorNube(clave) {
     try {
         const response = await fetch(`${KVDB_BUCKET}${clave}`);
@@ -31,9 +30,9 @@ async function obtenerContadorNube(clave) {
             const val = await response.text();
             return parseInt(val) || 0;
         }
-        return 0;
+        return 0; // Si da 404 o falla, asume 0 de forma segura
     } catch (e) {
-        console.error("Error al obtener contador de la nube:", e);
+        console.error("Error al obtener contador:", e);
         return 0;
     }
 }
@@ -48,8 +47,8 @@ async function incrementarContadorNube(clave, cantidad = 1) {
         });
         return nuevoValor;
     } catch (e) {
-        console.error("Error al incrementar contador en la nube:", e);
-        return 0;
+        console.error("Error al incrementar contador:", e);
+        return cantidad; // Retorna al menos la cantidad si falla
     }
 }
 
@@ -105,7 +104,7 @@ function cambiarEstadoInscripciones(nuevoEstado) {
     alert(`📢 Formulario configurado exitosamente como: ${nuevoEstado ? 'ABIERTO' : 'CERRADO'}`);
 }
 
-// Boton de reinicio de la base de datos REAL (en la nube)
+// Reiniciar base de datos global
 async function reiniciarBaseDeDatos() {
     playClick();
     const confirmar = confirm("⚠️ ¿ESTÁS COMPLETAMENTE SEGURO? Esto reseteará los contadores globales en la nube a 0.");
@@ -114,8 +113,8 @@ async function reiniciarBaseDeDatos() {
     try {
         await fetch(`${KVDB_BUCKET}totalJugadores`, { method: 'POST', body: '0' });
         await fetch(`${KVDB_BUCKET}totalCreadores`, { method: 'POST', body: '0' });
+        await fetch(`${KVDB_BUCKET}nicksRegistrados`, { method: 'POST', body: '[]' });
         
-        // Purgamos también el canal del Discord
         await fetch(WEBHOOK_ESTADISTICAS, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -287,12 +286,14 @@ function startCountdown() {
     }, 1000);
 }
 
-// Función global que envía las estadísticas reales a Discord
-async function enviarEstadisticasDiscord(ultimoAgregadoJugador, ultimoAgregadoCreador) {
-    // Obtenemos los valores más recientes directo de la nube
+// Función que envía las estadísticas globales únicamente cuando se hace un registro real exitoso
+async function enviarEstadisticasDiscord() {
     const totalJugadoresNormales = await obtenerContadorNube("totalJugadores");
     const totalCreadoresIntegrantes = await obtenerContadorNube("totalCreadores");
     const totalGlobal = totalJugadoresNormales + totalCreadoresIntegrantes;
+
+    // Solo se manda si hay al menos un registro para evitar reportes en 0 indeseados
+    if (totalGlobal === 0) return;
 
     const embedResumen = {
         title: "● 📊 ESTADÍSTICAS EN VIVO DEL EVENTO",
@@ -324,7 +325,14 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
 
     let webhookUrl = "";
     let embedData = {};
-    let nicksGlobalesStr = await fetch(`${KVDB_BUCKET}nicksRegistrados`).then(r => r.ok ? r.text() : "[]");
+    
+    // Traer la lista de nicks de forma segura
+    let nicksGlobalesStr = "[]";
+    try {
+        const resNicks = await fetch(`${KVDB_BUCKET}nicksRegistrados`);
+        if (resNicks.ok) nicksGlobalesStr = await resNicks.text();
+    } catch(err) { nicksGlobalesStr = "[]"; }
+
     let nicksRegistrados = [];
     try { nicksRegistrados = JSON.parse(nicksGlobalesStr); } catch(e) { nicksRegistrados = []; }
 
@@ -337,13 +345,12 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             return;
         }
 
-        // Validación de duplicados global en tiempo real
         if (nicksRegistrados.map(v => v.toLowerCase()).includes(nick.toLowerCase())) {
             alert(`❌ El usuario "${nick}" ya se encuentra registrado en el evento.`);
             return;
         }
 
-        // Sumamos 1 al contador global de la nube de forma segura
+        // Incrementamos el valor global en la nube de forma segura
         const nuevoContadorGlobal = await incrementarContadorNube("totalJugadores");
         
         nicksRegistrados.push(nick);
@@ -388,7 +395,6 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             listaIntegrantesCampos.push({ nick: n, discord: d });
         }
 
-        // Sumamos los integrantes al contador global de creadores en la nube
         await incrementarContadorNube("totalCreadores", integrantesCount);
 
         listaIntegrantesCampos.forEach(integ => nicksRegistrados.push(integ.nick));
@@ -433,7 +439,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             document.getElementById("registerForm").reset();
             switchForm(currentFormType);
             
-            // Enviamos las estadísticas reales a Discord basadas en la nube
+            // Enviamos las estadísticas actualizadas de forma segura
             await enviarEstadisticasDiscord();
         } else {
             alert("Hubo un problema al enviar los datos.");
