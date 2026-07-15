@@ -49,7 +49,7 @@ function verificarEstadoInscripciones() {
     if (!form) return;
     if (!isOpen) {
         if (!window.originalFormHTML) window.originalFormHTML = form.innerHTML;
-        form.innerHTML = `<div class="text-center py-8 text-zinc-400">🔒 Inscripciones Cerradas Tempormente.</div>`;
+        form.innerHTML = `<div class="text-center py-8 text-zinc-400">🔒 Inscripciones Cerradas Temporalmente.</div>`;
     } else if (window.originalFormHTML) {
         form.innerHTML = window.originalFormHTML;
         window.originalFormHTML = null;
@@ -66,7 +66,7 @@ function switchForm(type) {
     }
 }
 
-// ARREGLADO: Muestra u oculta los integrantes según el número seleccionado
+// Muestra u oculta los integrantes según el número seleccionado
 function updateCreatorFields() {
     const countSelect = document.getElementById("creatorCount");
     if (!countSelect) return;
@@ -97,7 +97,7 @@ function startCountdown() {
     }, 1000);
 }
 
-// Envío unificado a Google Sheets
+// Envío unificado a Google Sheets + Discord
 document.getElementById("registerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const btnEnviar = e.target.querySelector("button[type='submit']");
@@ -119,19 +119,26 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
         const liderNick = document.getElementById("cNick1").value.trim();
         const liderDiscord = document.getElementById("cDiscord1").value.trim();
 
-        // ARREGLADO: Recopilamos la información de los demás integrantes si existen
-        let otrosIntegrantes = [];
+        // ARREGLADO: Recopilamos la información estructurada e individual para Discord y Sheets
+        let acompanantesParaDiscord = [];
+        let otrosIntegrantesTexto = [];
+
         for (let i = 2; i <= integrantesCount; i++) {
-            const n = document.getElementById(`cNick${i}`).value.trim();
-            const d = document.getElementById(`cDiscord${i}`).value.trim();
+            const nInput = document.getElementById(`cNick${i}`);
+            const dInput = document.getElementById(`cDiscord${i}`);
+            
+            const n = nInput ? nInput.value.trim() : "";
+            const d = dInput ? dInput.value.trim() : "";
+            
             if (n && d) {
-                otrosIntegrantes.push(`${n} (${d})`);
+                acompanantesParaDiscord.push({ nick: n, discord: d });
+                otrosIntegrantesTexto.push(`${n} (${d})`);
             }
         }
 
-        // Combinamos la lista para enviarla a Google Sheets de manera legible
-        const detallesIntegrantes = otrosIntegrantes.length > 0 
-            ? `Líder: ${liderNick}. Acompañantes: ${otrosIntegrantes.join(", ")}`
+        // Formato compacto para almacenar cómodamente en una sola celda del Sheets
+        const detallesIntegrantesExcel = otrosIntegrantesTexto.length > 0 
+            ? `Líder: ${liderNick}. Acompañantes: ${otrosIntegrantesTexto.join(", ")}`
             : `Líder: ${liderNick}`;
 
         payload = {
@@ -141,7 +148,8 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             canal: document.getElementById("creatorChannel").value.trim(),
             actividad: document.getElementById("creatorActivity").value,
             integrantes: integrantesCount,
-            detallesIntegrantes: detallesIntegrantes // Esto se enviará al Excel
+            acompanantes: acompanantesParaDiscord, // Envía la lista detallada e individual para Discord
+            detallesIntegrantes: detallesIntegrantesExcel // Envía la celda compacta para Google Sheets
         };
     }
 
