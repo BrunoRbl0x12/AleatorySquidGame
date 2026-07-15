@@ -10,7 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
     startCountdown();
     verificarEstadoInscripciones();
-    updateCreatorFields();
+    updateCreatorFields(); // Inicializa los campos de creador
+    
+    // Escuchar cambios en el selector de cantidad de integrantes
+    const creatorCountSelect = document.getElementById("creatorCount");
+    if (creatorCountSelect) {
+        creatorCountSelect.addEventListener("change", updateCreatorFields);
+    }
 });
 
 // Panel de Staff Local
@@ -43,7 +49,7 @@ function verificarEstadoInscripciones() {
     if (!form) return;
     if (!isOpen) {
         if (!window.originalFormHTML) window.originalFormHTML = form.innerHTML;
-        form.innerHTML = `<div class="text-center py-8 text-zinc-400">🔒 Inscripciones Cerradas Temporalmente.</div>`;
+        form.innerHTML = `<div class="text-center py-8 text-zinc-400">🔒 Inscripciones Cerradas Tempormente.</div>`;
     } else if (window.originalFormHTML) {
         form.innerHTML = window.originalFormHTML;
         window.originalFormHTML = null;
@@ -55,9 +61,28 @@ function switchForm(type) {
     currentFormType = type;
     document.getElementById("camposJugador").classList.toggle("hidden", type !== 'jugador');
     document.getElementById("camposCreador").classList.toggle("hidden", type === 'jugador');
+    if (type === 'creador') {
+        updateCreatorFields();
+    }
 }
 
-function updateCreatorFields() {}
+// ARREGLADO: Muestra u oculta los integrantes según el número seleccionado
+function updateCreatorFields() {
+    const countSelect = document.getElementById("creatorCount");
+    if (!countSelect) return;
+    const count = parseInt(countSelect.value);
+    
+    for (let i = 1; i <= 10; i++) {
+        const targetBox = document.getElementById(`boxIntegrante${i}`);
+        if (targetBox) {
+            if (i <= count) {
+                targetBox.classList.remove("hidden");
+            } else {
+                targetBox.classList.add("hidden");
+            }
+        }
+    }
+}
 
 function startCountdown() {
     const targetDate = new Date("2026-07-17T20:00:00-03:00").getTime();
@@ -88,26 +113,49 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             discord: document.getElementById("playerDiscord").value.trim()
         };
     } else {
+        const integrantesCount = parseInt(document.getElementById("creatorCount").value);
+        
+        // Obtenemos el líder (Integrante 1)
+        const liderNick = document.getElementById("cNick1").value.trim();
+        const liderDiscord = document.getElementById("cDiscord1").value.trim();
+
+        // ARREGLADO: Recopilamos la información de los demás integrantes si existen
+        let otrosIntegrantes = [];
+        for (let i = 2; i <= integrantesCount; i++) {
+            const n = document.getElementById(`cNick${i}`).value.trim();
+            const d = document.getElementById(`cDiscord${i}`).value.trim();
+            if (n && d) {
+                otrosIntegrantes.push(`${n} (${d})`);
+            }
+        }
+
+        // Combinamos la lista para enviarla a Google Sheets de manera legible
+        const detallesIntegrantes = otrosIntegrantes.length > 0 
+            ? `Líder: ${liderNick}. Acompañantes: ${otrosIntegrantes.join(", ")}`
+            : `Líder: ${liderNick}`;
+
         payload = {
             tipo: "creador",
-            nick: document.getElementById("cNick1").value.trim(), // Líder
-            discord: document.getElementById("cDiscord1").value.trim(),
+            nick: liderNick, 
+            discord: liderDiscord,
             canal: document.getElementById("creatorChannel").value.trim(),
             actividad: document.getElementById("creatorActivity").value,
-            integrantes: document.getElementById("creatorCount").value
+            integrantes: integrantesCount,
+            detallesIntegrantes: detallesIntegrantes // Esto se enviará al Excel
         };
     }
 
     try {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
-            mode: "no-cors", // Evita problemas de bloqueo en el navegador
+            mode: "no-cors", 
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
 
         alert("🚀 ¡Inscripción enviada con éxito! Se está procesando e ingresando en la lista de Discord.");
         document.getElementById("registerForm").reset();
+        updateCreatorFields(); // Resetea las cajas visibles a solo 1 integrante
     } catch (error) {
         alert("Hubo un problema al procesar tu inscripción.");
     } finally {
