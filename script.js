@@ -89,40 +89,18 @@ function cambiarEstadoInscripciones(nuevoEstado) {
 }
 
 // ==========================================
-// Boton de reinicio de formularios
+// Boton de reinicio de formularios (Local)
 // ==========================================
 async function reiniciarBaseDeDatos() {
     playClick();
-    const confirmar1 = confirm("⚠️ ¿ESTÁS ABSOLUTAMENTE SEGURO? Se vaciarán los contadores, nicks duplicados y la lista de proyectos.");
+    const confirmar1 = confirm("⚠️ ¿ESTÁS ABSOLUTAMENTE SEGURO? Se vaciarán los contadores, nicks duplicados y la lista de proyectos de tu navegador.");
     if (!confirmar1) return;
 
     localStorage.clear();
     inicializarBaseDeDatos();
     cerrarPanelStaff();
     
-    alert("🔄 Base de datos local limpiada correctamente.");
-
-    if (!WEBHOOK_ESTADISTICAS.includes("AQUÍ")) {
-        try {
-            await fetch(WEBHOOK_ESTADISTICAS, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    embeds: [{
-                        title: "♻️ REGISTROS GENERALES REINICIADOS",
-                        description: "Un administrador ha purgado la base de datos de inscritos desde el Panel de Staff de la Web.",
-                        color: 16753920,
-                        fields: [
-                            { name: "👤 Jugadores Normales", value: "0", inline: true },
-                            { name: "🎬 Streamers / Youtubers", value: "0", inline: true },
-                            { name: "🏆 En Total", value: "**0** / 100", inline: false }
-                        ],
-                        timestamp: new Date().toISOString()
-                    }]
-                })
-            });
-        } catch (e) { console.error(e); }
-    }
+    alert("🔄 Tu base de datos local ha sido limpiada.");
     window.location.reload();
 }
 
@@ -235,21 +213,23 @@ function toggleAccordion(id) {
     }
 }
 
+// Contador optimizado sin provocar lag en navegadores lentos o móviles
 function startCountdown() {
     const targetDate = new Date("2026-07-17T20:00:00-03:00").getTime();
     
+    const dEl = document.getElementById("days");
+    const hEl = document.getElementById("hours");
+    const mEl = document.getElementById("minutes");
+    const sEl = document.getElementById("seconds");
+
+    if (!dEl && !hEl && !mEl && !sEl) return;
+
     const interval = setInterval(() => {
         const now = new Date().getTime();
         const difference = targetDate - now;
 
         if (difference < 0) {
             clearInterval(interval);
-            // Opcional: Puedes poner los contadores en 00 si el tiempo ya pasó
-            const dEl = document.getElementById("days");
-            const hEl = document.getElementById("hours");
-            const mEl = document.getElementById("minutes");
-            const sEl = document.getElementById("seconds");
-            
             if (dEl) dEl.innerText = "00";
             if (hEl) hEl.innerText = "00";
             if (mEl) mEl.innerText = "00";
@@ -262,11 +242,6 @@ function startCountdown() {
         const m = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((difference % (1000 * 60)) / 1000);
 
-        const dEl = document.getElementById("days");
-        const hEl = document.getElementById("hours");
-        const mEl = document.getElementById("minutes");
-        const sEl = document.getElementById("seconds");
-
         if (dEl) dEl.innerText = d < 10 ? "0" + d : d;
         if (hEl) hEl.innerText = h < 10 ? "0" + h : h;
         if (mEl) mEl.innerText = m < 10 ? "0" + m : m;
@@ -274,46 +249,8 @@ function startCountdown() {
     }, 1000);
 }
 
-async function enviarEstadisticasDiscord() {
-    const totalJugadoresNormales = parseInt(localStorage.getItem("totalJugadores"));
-    const totalCreadoresIntegrantes = parseInt(localStorage.getItem("totalCreadores"));
-    const totalGlobal = totalJugadoresNormales + totalCreadoresIntegrantes;
-    
-    const proyectosLista = JSON.parse(localStorage.getItem("listaProyectos")) || [];
-
-    let textoProyectos = proyectosLista.length > 0 
-        ? proyectosLista.map(p => `• **${p.canal}** - ${p.integrantes} integrante(s) - *${p.actividad}*`).join("\n")
-        : "*No hay canales registrados aún.*";
-
-    const embedResumen = {
-        title: "● 📊ESTADÍSTICAS EN VIVO DEL EVENTO",
-        color: 65498,
-        fields: [
-            { name: "👤 Jugadores Normales", value: `${totalJugadoresNormales}`, inline: true },
-            { name: "🎬 Streamers / Youtubers", value: `${totalCreadoresIntegrantes}`, inline: true },
-            { name: "🏆 En Total", value: `**${totalGlobal}** / 100`, inline: false }
-        ],
-        timestamp: new Date().toISOString()
-    };
-
-    const embedCanales = {
-        title: "📺 CANALES Y PROYECTOS REGISTRADOS",
-        description: textoProyectos,
-        color: 16711807,
-        timestamp: new Date().toISOString()
-    };
-
-    try {
-        await fetch(WEBHOOK_ESTADISTICAS, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ embeds: [embedResumen, embedCanales] })
-        });
-    } catch (e) { console.error(e); }
-}
-
 // ==========================================
-// CONTROL DEL FORMULARIO
+// CONTROL DEL FORMULARIO Y REGISTROS
 // ==========================================
 document.getElementById("registerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -321,7 +258,6 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
 
     let webhookUrl = "";
     let embedData = {};
-    let nicksRegistrados = JSON.parse(localStorage.getItem("nicksRegistrados")) || [];
 
     if (currentFormType === 'jugador') {
         const nick = document.getElementById("playerNick").value.trim();
@@ -332,21 +268,10 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             return;
         }
 
-        if (nicksRegistrados.map(v => v.toLowerCase()).includes(nick.toLowerCase())) {
-            alert(`❌ El usuario "${nick}" ya se encuentra registrado en el evento.`);
-            return;
-        }
-
-        let count = parseInt(localStorage.getItem("totalJugadores")) + 1;
-        localStorage.setItem("totalJugadores", count);
-        
-        nicksRegistrados.push(nick);
-        localStorage.setItem("nicksRegistrados", JSON.stringify(nicksRegistrados));
-
         webhookUrl = WEBHOOK_JUGADORES;
 
         embedData = {
-            title: `▲ SOLICITUD DE JUGADOR INDIVIDUAL J-0${count}`,
+            title: `▲ SOLICITUD DE JUGADOR INDIVIDUAL`,
             color: 16711807,
             thumbnail: { url: `https://minotar.net/helm/${nick}/64.png` },
             fields: [
@@ -374,25 +299,10 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
                 alert(`❌ Error: El Integrante ${i} posee campos vacíos.`);
                 return;
             }
-
-            if (nicksRegistrados.map(v => v.toLowerCase()).includes(n.toLowerCase())) {
-                alert(`❌ El integrante "${n}" ya se encuentra registrado en el evento.`);
-                return;
-            }
             listaIntegrantesCampos.push({ nick: n, discord: d });
         }
 
         webhookUrl = WEBHOOK_CREADORES;
-
-        listaIntegrantesCampos.forEach(integ => nicksRegistrados.push(integ.nick));
-        localStorage.setItem("nicksRegistrados", JSON.stringify(nicksRegistrados));
-
-        let currentCreadores = parseInt(localStorage.getItem("totalCreadores"));
-        localStorage.setItem("totalCreadores", currentCreadores + integrantesCount);
-
-        let proyectosLista = JSON.parse(localStorage.getItem("listaProyectos")) || [];
-        proyectosLista.push({ canal: channel, integrantes: integrantesCount, actividad: activity });
-        localStorage.setItem("listaProyectos", JSON.stringify(proyectosLista));
 
         let fields = [
             { name: "📺 Canal / Proyecto", value: `**${channel}**`, inline: false },
@@ -419,11 +329,6 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
         };
     }
 
-    if (webhookUrl.includes("AQUÍ") || WEBHOOK_ESTADISTICAS.includes("AQUÍ")) {
-        alert("¡Error interno! Los Webhooks de Discord no están configurados correctamente.");
-        return;
-    }
-
     try {
         const response = await fetch(webhookUrl, {
             method: "POST",
@@ -433,7 +338,6 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
         
         if (response.ok) {
             alert("¡Tu admisión ha sido enviada con éxito! Revisa nuestro Discord para la lista de aprobados.");
-            await enviarEstadisticasDiscord();
             document.getElementById("registerForm").reset();
             switchForm(currentFormType);
         } else {
@@ -447,7 +351,6 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
 // ==========================================
 // ANTI F12/INSPECCIONAR 
 // ==========================================
-
 document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
 });
