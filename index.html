@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aleatory Squid Game | Invitación Oficial Minecraft</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        squidRosa: '#ff007f',
+                        squidVerde: '#037a76',
+                        squidVerdeBrillante: '#00f2fe',
+                        squidGris: '#121214',
+                    },
+                    fontFamily: {
+                        pixel: ['"Press Start 2P"', 'monospace'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-zinc-950 text-gray-100 font-sans selection:bg-squidRosa selection:text-white bg-beds-dorm">
+
+    <audio id="clickSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" preload="auto"></audio>
+
+<!-- HEADER & NAVEGACIÓN -->
+<header class="fixed top-0 left-0 w-full bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <img src="media/logo.png" alt="Logo" class="h-8 w-auto object-contain" onerror="this.style.display='none'">
+            <span class="font-pixel text-squidRosa text-lg neon-text tracking-widest">▲ ● ■</span>
+        </div>
+        
+        <nav class="hidden md:flex gap-6 text-sm font-semibold tracking-wide text-zinc-300">
+            <a href="#detalles" class="hover:text-squidRosa transition" onclick="playClick()">Información</a>
+            <a href="#reglas" class="hover:text-squidRosa transition" onclick="playClick()">Reglas</a>
+            <a href="#registro" class="hover:text-squidRosa transition" onclick="playClick()">Inscripción</a>
+        </nav>
+
+        <div class="flex items-center gap-2">
+            <a href="https://discord.gg/BqP2xc8UZB" target="_blank" class="bg-[#5865F2] hover:bg-[#4752C4] text-white font-pixel text-[9px] px-4 py-2.5 rounded border-b-4 border-[#3c45a0] active:border-b-0 transition-all flex items-center gap-1.5" onclick="playClick()">
+                <i data-lucide="message-square" class="w-3.5 h-3.5"></i> DISCORD
+            </a>
+            <button type="button" onclick="abrirPanelStaff()" class="bg-zinc-850 hover:bg-zinc-800 border border-zinc-700/60 text-zinc-300 hover:text-white font-pixel text-[9px] px-3 py-2.5 rounded border-b-4 border-zinc-700 active:border-b-0 transition-all flex items-center gap-1">
+                <i data-lucide="shield" class="w-3.5 h-3.5 text-squidRosa"></i> STAFF
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- MODAL ESTRUCTURAL DE AJUSTES STAFF -->
+<div id="staffModal" class="fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md p-6 shadow-2xl space-y-6 relative">
+        <button onclick="cerrarPanelStaff()" class="absolute top-4 right-4 text-zinc-500 hover:text-white transition">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        
+        <div class="flex items-center gap-2 text-squidRosa font-pixel text-xs tracking-wide border-b border-zinc-800 pb-3">
+            <i data-lucide="sliders" class="w-4 h-4"></i> AJUSTES DE ADMINISTRACIÓN
+        </div>
+
+        <div class="space-y-4">
+            <!-- Control de Inscripciones (Dos botones independientes) -->
+            <div class="p-4 bg-zinc-950/50 border border-zinc-800 rounded-lg space-y-3">
+                <div>
+                    <p class="text-sm font-semibold text-white">Administración de Inscripciones</p>
+                    <p id="txtEstadoFormulario" class="text-[11px] text-zinc-400 mt-1 font-pixel uppercase tracking-wider">
+                        Estado de formulario: <span class="text-emerald-400">Abierto</span>
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button type="button" id="btnAbrirForm" onclick="cambiarEstadoInscripciones(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-pixel text-[9px] py-2 rounded border-b-4 border-emerald-950 active:border-b-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                        ABRIR FORMULARIO
+                    </button>
+                    <button type="button" id="btnCerrarForm" onclick="cambiarEstadoInscripciones(false)" class="bg-rose-600 hover:bg-rose-700 text-white font-pixel text-[9px] py-2 rounded border-b-4 border-rose-950 active:border-b-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                        CERRAR FORMULARIO
+                    </button>
+                </div>
+            </div>
+
+            <!-- Botón de Reinicio Absoluto -->
+            <div class="p-4 bg-red-950/20 border border-red-900/30 rounded-lg space-y-2">
+                <p class="text-sm font-semibold text-red-400">Limpieza de Datos</p>
+                <p class="text-[11px] text-zinc-500 mb-2">Restablece contadores web, nicks registrados y limpia el log actual.</p>
+                <button onclick="reiniciarBaseDeDatos()" class="w-full bg-red-600 hover:bg-red-700 text-white font-pixel text-[9px] py-2.5 rounded border-b-4 border-red-950 active:border-b-0 transition-all">
+                    REINICIAR TODOS LOS FORMULARIOS
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="staffModal" class="fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md p-6 shadow-2xl space-y-6 relative animate-fade-in">
+        <button onclick="cerrarPanelStaff()" class="absolute top-4 right-4 text-zinc-500 hover:text-white transition">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        
+        <div class="flex items-center gap-2 text-squidRosa font-pixel text-xs tracking-wide border-b border-zinc-800 pb-3">
+            <i data-lucide="sliders"></i> AJUSTES DE ADMINISTRACIÓN
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex items-center justify-between p-3 bg-zinc-950/50 border border-zinc-800 rounded-lg">
+                <div>
+                    <p class="text-sm font-semibold text-white">Estado del Formulario</p>
+                    <p class="text-[11px] text-zinc-500">Abre o cierra el flujo de registros.</p>
+                </div>
+                <button id="btnToggleInscripciones" onclick="toggleEstadoInscripciones()" class="font-pixel text-[9px] px-3 py-2 rounded transition-all border-b-4"></button>
+            </div>
+
+            <div class="p-3 bg-red-950/20 border border-red-900/30 rounded-lg space-y-2">
+                <p class="text-sm font-semibold text-red-400">Limpieza de Datos</p>
+                <p class="text-[11px] text-zinc-500 mb-2">Restablece contadores web, nicks registrados y limpia el log actual.</p>
+                <button onclick="reiniciarBaseDeDatos()" class="w-full bg-red-600 hover:bg-red-700 text-white font-pixel text-[9px] py-2.5 rounded border-b-4 border-red-950 active:border-b-0 transition-all">
+                    REINICIAR TODOS LOS FORMULARIOS
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <section class="relative min-h-screen flex flex-col justify-center items-center pt-32 px-6 text-center">
+        <div class="inline-flex items-center gap-2 bg-rose-500/10 border border-squidRosa/30 px-3 py-1 rounded-full text-squidRosa text-xs font-semibold mb-6 animate-pulse">
+            <i data-lucide="shield-alert" class="w-4 h-4"></i>
+            SOLO LOS MEJORES SOBREVIVIRÁN
+        </div>
+
+        <div class="mb-6 max-w-xs md:max-w-sm">
+            <img src="media/logo.png" alt="Aleatory Squid Game Logo" class="w-full h-auto object-contain mx-auto drop-shadow-[0_5px_15px_rgba(255,0,127,0.3)]" onerror="this.style.display='none'">
+        </div>
+
+        <h1 class="font-pixel text-2xl md:text-5xl lg:text-6xl text-white tracking-tight leading-tight mb-4 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]">
+            ALEATORY <br class="md:hidden"> <span class="text-squidRosa neon-text">SQUID GAME</span>
+        </h1>
+        <p class="font-pixel text-zinc-500 text-[10px] md:text-xs mb-8 tracking-widest">MINECRAFT MULTIPLAYER EVENT</p>
+
+        <p class="text-zinc-300 max-w-xl text-base md:text-lg mb-10 leading-relaxed font-light">
+            3 Días...  7 Juegos... ¿Lograrás llegar al final con vida? Solo quedará uno en pie, ¿serás tú?.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 mb-16">
+            <a href="#registro" class="bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-pixel text-xs px-8 py-4 rounded border-b-4 border-emerald-700 active:border-b-0 transition-all" onclick="playClick()">
+                ACEPTAR INVITACIÓN
+            </a>
+            <a href="#detalles" class="bg-zinc-900/90 hover:bg-zinc-850 text-white font-pixel text-xs px-8 py-4 rounded border-b-4 border-zinc-700 active:border-b-0 transition-all border border-zinc-700/50" onclick="playClick()">
+                DETALLES
+            </a>
+        </div>
+
+        <div class="w-full max-w-3xl bg-zinc-900/80 border border-zinc-800/80 rounded-xl p-6 backdrop-blur-md shadow-2xl">
+            <p class="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-4">TIEMPO RESTANTE PARA EL INGRESO:</p>
+            <div class="grid grid-cols-4 gap-4 max-w-lg mx-auto">
+                <div class="bg-zinc-950/95 p-3 rounded-lg border border-zinc-800">
+                    <span id="days" class="block text-2xl md:text-3xl font-bold text-squidRosa">00</span>
+                    <span class="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold">Días</span>
+                </div>
+                <div class="bg-zinc-950/95 p-3 rounded-lg border border-zinc-800">
+                    <span id="hours" class="block text-2xl md:text-3xl font-bold text-squidRosa">00</span>
+                    <span class="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold">Horas</span>
+                </div>
+                <div class="bg-zinc-950/95 p-3 rounded-lg border border-zinc-800">
+                    <span id="minutes" class="block text-2xl md:text-3xl font-bold text-squidRosa">00</span>
+                    <span class="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold">Mins</span>
+                </div>
+                <div class="bg-zinc-950/95 p-3 rounded-lg border border-zinc-800">
+                    <span id="seconds" class="block text-2xl md:text-3xl font-bold text-squidRosa">00</span>
+                    <span class="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold">Segs</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="detalles" class="py-24 bg-zinc-950/90 border-t border-zinc-900 px-6 backdrop-blur-sm">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="font-pixel text-lg md:text-2xl text-white mb-2">DATOS TÉCNICOS</h2>
+                <div class="h-1 w-24 bg-squidRosa mx-auto rounded"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-6 hover:border-squidRosa/40 transition group">
+                    <div class="w-12 h-12 bg-rose-500/10 rounded-lg flex items-center justify-center text-squidRosa mb-4 group-hover:scale-110 transition duration-300">
+                        <i data-lucide="users" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-sm font-pixel text-zinc-300 mb-2">Capacidad</h3>
+                    <p class="text-2xl font-bold text-white">100 Jugadores</p>
+                    <p class="text-xs text-zinc-500 mt-1">Máximo de jugadores.</p>
+                </div>
+
+                <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-6 hover:border-squidRosa/40 transition group">
+                    <div class="w-12 h-12 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-500 mb-4 group-hover:scale-110 transition duration-300">
+                        <i data-lucide="trophy" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-sm font-pixel text-zinc-300 mb-2">Premio</h3>
+                    <p class="text-xl font-bold text-amber-400 leading-tight">Entrada a La nueva serie</p>
+                    <p class="text-xs text-zinc-500 mt-1">Recompensa final para el último en pie. (Nos quedamos sin presupuesto).</p>
+                </div>
+
+                <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-6 hover:border-squidRosa/40 transition group">
+                    <div class="w-12 h-12 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500 mb-4 group-hover:scale-110 transition duration-300">
+                        <i data-lucide="layers" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-sm font-pixel text-zinc-300 mb-2">Versión</h3>
+                    <p class="text-2xl font-bold text-white">Forge 1.20.1</p>
+                    <p class="text-xs text-zinc-500 mt-1">Incluido mods de optimización.</p>
+                </div>
+
+                <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-6 hover:border-squidRosa/40 transition group flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-sky-500/10 rounded-lg flex items-center justify-center text-sky-500 mb-4 group-hover:scale-110 transition duration-300">
+                            <i data-lucide="server" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-sm font-pixel text-zinc-300 mb-2">Dirección IP</h3>
+                        <p class="text-xs text-zinc-400 mb-4 leading-relaxed">La dirección y los Mods serán enviados en el servidor de discord el día del evento.</p>
+                    </div>
+                    <a href="https://discord.gg/BqP2xc8UZB" target="_blank" class="bg-[#5865F2] hover:bg-[#4752C4] text-white text-center font-pixel text-[9px] py-2.5 rounded border-b-4 border-[#3c45a0] active:border-b-0 transition-all flex items-center justify-center gap-2" onclick="playClick()">
+                        <i data-lucide="message-square" class="w-4 h-4"></i> ENTRAR AL DISCORD
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="reglas" class="py-24 bg-zinc-950/95 border-t border-zinc-900 px-6 backdrop-blur-sm">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="font-pixel text-lg md:text-2xl text-white mb-2">REGLAMENTO GENERAL</h2>
+                <div class="h-1 w-24 bg-squidRosa mx-auto rounded"></div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="border border-zinc-800 rounded-lg overflow-hidden bg-zinc-900/40">
+                    <button class="w-full flex justify-between items-center p-5 hover:bg-zinc-900/50 text-left transition font-semibold" onclick="toggleAccordion(1); playClick()">
+                        <span>Regla 1: Un jugador no puede dejar de jugar voluntariamente</span>
+                        <i id="icon-1" data-lucide="chevron-down" class="w-5 h-5 text-squidRosa transition-transform duration-200"></i>
+                    </button>
+                    <div id="content-1" class="hidden p-5 bg-zinc-950/80 border-t border-zinc-800/60 text-zinc-400 text-sm leading-relaxed">
+                        Si te desconectas voluntariamente en medio de una prueba activa o no te conectas, quedarás eliminado del evento. Caídas justificadas de internet deberán reportarse al staff en Discord lo antes posible.
+                    </div>
+                </div>
+
+                <div class="border border-zinc-800 rounded-lg overflow-hidden bg-zinc-900/40">
+                    <button class="w-full flex justify-between items-center p-5 hover:bg-zinc-900/50 text-left transition font-semibold" onclick="toggleAccordion(2); playClick()">
+                        <span>Regla 2: Conseguir ventaja ante otros jugadores de cualquier tipo</span>
+                        <i id="icon-2" data-lucide="chevron-down" class="w-5 h-5 text-squidRosa transition-transform duration-200"></i>
+                    </button>
+                    <div id="content-2" class="hidden p-5 bg-zinc-950/80 border-t border-zinc-800/60 text-zinc-400 text-sm leading-relaxed">
+                        El uso de clientes modificados (hacks, X-ray, autoclickers, etc.) acarreará el ban permanente del evento.
+                    </div>
+                </div>
+
+                <div class="border border-zinc-800 rounded-lg overflow-hidden bg-zinc-900/40">
+                    <button class="w-full flex justify-between items-center p-5 hover:bg-zinc-900/50 text-left transition font-semibold" onclick="toggleAccordion(3); playClick()">
+                        <span>Regla 3: Respeta la jerarquía de los "Guardias"</span>
+                        <i id="icon-3" data-lucide="chevron-down" class="w-5 h-5 text-squidRosa transition-transform duration-200"></i>
+                    </button>
+                    <div id="content-3" class="hidden p-5 bg-zinc-950/80 border-t border-zinc-800/60 text-zinc-400 text-sm leading-relaxed">
+                        Las órdenes de los guardias del evento dentro de la arena de juego son definitivas. Desobedecer una directiva de posicionamiento o de inicio puede causar una eliminación.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="registro" class="py-24 bg-zinc-900/80 border-t border-zinc-900 px-6 backdrop-blur-md">
+        <div class="max-w-xl mx-auto text-center">
+            <span class="text-emerald-400 font-pixel text-[10px] tracking-widest block mb-2">INGRESA TUS DATOS</span>
+            <h2 class="font-pixel text-lg md:text-2xl text-white mb-6">FORMULARIO DE ADMISIÓN</h2>
+            
+            <div class="flex border-b border-zinc-800 mb-8 max-w-sm mx-auto justify-center font-pixel text-[9px] md:text-[10px]">
+                <button type="button" id="tabJugador" class="w-1/2 py-3 border-b-2 border-squidRosa text-white transition focus:outline-none" onclick="switchForm('jugador'); playClick()">
+                    JUGADORES
+                </button>
+                <button type="button" id="tabCreador" class="w-1/2 py-3 border-b-2 border-transparent text-zinc-500 hover:text-zinc-300 transition focus:outline-none" onclick="switchForm('creador'); playClick()">
+                    CREADORES DE CONTENIDO
+                </button>
+            </div>
+
+            <form id="registerForm" class="text-left space-y-6 bg-zinc-950/90 p-8 rounded-xl border border-zinc-800/80 shadow-2xl">
+                
+                <!-- JUGADOR NORMAL -->
+                <div id="camposJugador" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-pixel text-zinc-400 mb-2 uppercase tracking-wide">Usuario de Minecraft (Nick)</label>
+                        <input type="text" id="playerNick" placeholder="Ej: Minecraftero99" class="w-full bg-zinc-900 border border-zinc-800 rounded px-4 py-3 text-sm text-white focus:outline-none focus:border-squidRosa transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-pixel text-zinc-400 mb-2 uppercase tracking-wide">Usuario de Discord</label>
+                        <input type="text" id="playerDiscord" placeholder="Ej: @usuario" class="w-full bg-zinc-900 border border-zinc-800 rounded px-4 py-3 text-sm text-white focus:outline-none focus:border-squidRosa transition">
+                    </div>
+                </div>
+
+                <div id="camposCreador" class="space-y-6 hidden">
+                    <div>
+                        <label class="block text-xs font-pixel text-zinc-400 mb-2 uppercase tracking-wide">Nombre del Canal / Proyecto</label>
+                        <input type="text" id="creatorChannel" placeholder="Ej: Los Primos Craft" class="w-full bg-zinc-900 border border-zinc-800 rounded px-4 py-3 text-sm text-white focus:outline-none focus:border-squidRosa transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-pixel text-zinc-400 mb-2 uppercase tracking-wide">¿Cuántos integrantes del canal participarán?</label>
+                        <select id="creatorCount" class="w-full bg-zinc-900 border border-zinc-800 rounded px-4 py-3 text-sm text-white focus:outline-none focus:border-squidRosa transition cursor-pointer" onchange="updateCreatorFields(); playClick()">
+                            <option value="1">1 Integrante</option>
+                            <option value="2">2 Integrantes</option>
+                            <option value="3">3 Integrantes</option>
+                            <option value="4">4 Integrantes</option>
+                            <option value="5">5 Integrantes</option>
+                            <option value="6">6 Integrantes</option>
+                            <option value="7">7 Integrantes</option>
+                            <option value="8">8 Integrantes</option>
+                            <option value="9">9 Integrantes</option>
+                            <option value="10">10 Integrantes</option>
+                        </select>
+                    </div>
+
+                    <div id="integrantesContainer" class="space-y-4">
+                        
+                        <!-- Integrante 1 -->
+                        <div id="boxIntegrante1" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3">
+                            <span class="text-xs font-pixel text-squidRosa block">INTEGRANTE 1 (Principal)</span>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Nick de Minecraft</label>
+                                <input type="text" id="cNick1" placeholder="Nick 1" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Discord</label>
+                                <input type="text" id="cDiscord1" placeholder="@discord1" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Integrante 2 -->
+                        <div id="boxIntegrante2" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3 hidden">
+                            <span class="text-xs font-pixel text-zinc-500 block">INTEGRANTE 2</span>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Nick de Minecraft</label>
+                                <input type="text" id="cNick2" placeholder="Nick 2" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Discord</label>
+                                <input type="text" id="cDiscord2" placeholder="@discord2" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Integrante 3 -->
+                        <div id="boxIntegrante3" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3 hidden">
+                            <span class="text-xs font-pixel text-zinc-500 block">INTEGRANTE 3</span>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Nick de Minecraft</label>
+                                <input type="text" id="cNick3" placeholder="Nick 3" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Discord</label>
+                                <input type="text" id="cDiscord3" placeholder="@discord3" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Integrante 4 -->
+                        <div id="boxIntegrante4" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3 hidden">
+                            <span class="text-xs font-pixel text-zinc-500 block">INTEGRANTE 4</span>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Nick de Minecraft</label>
+                                <input type="text" id="cNick4" placeholder="Nick 4" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Discord</label>
+                                <input type="text" id="cDiscord4" placeholder="@discord4" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Integrante 5 -->
+                        <div id="boxIntegrante5" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3 hidden">
+                            <span class="text-xs font-pixel text-zinc-500 block">INTEGRANTE 5</span>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Nick de Minecraft</label>
+                                <input type="text" id="cNick5" placeholder="Nick 5" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Discord</label>
+                                <input type="text" id="cDiscord5" placeholder="@discord5" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Integrante 6 -->
+                        <div id="boxIntegrante6" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3 hidden">
+                            <span class="text-xs font-pixel text-zinc-500 block">INTEGRANTE 6</span>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Nick de Minecraft</label>
+                                <input type="text" id="cNick6" placeholder="Nick 6" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Discord</label>
+                                <input type="text" id="cDiscord6" placeholder="@discord6" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Integrante 7 -->
+                        <div id="boxIntegrante7" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3 hidden">
+                            <span class="text-xs font-pixel text-zinc-500 block">INTEGRANTE 7</span>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Nick de Minecraft</label>
+                                <input type="text" id="cNick7" placeholder="Nick 7" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Discord</label>
+                                <input type="text" id="cDiscord7" placeholder="@discord7" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Integrante 8 -->
+                        <div id="boxIntegrante8" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3 hidden">
+                            <span class="text-xs font-pixel text-zinc-500 block">INTEGRANTE 8</span>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Nick de Minecraft</label>
+                                <input type="text" id="cNick8" placeholder="Nick 8" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Discord</label>
+                                <input type="text" id="cDiscord8" placeholder="@discord8" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Integrante 9 -->
+                        <div id="boxIntegrante9" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3 hidden">
+                            <span class="text-xs font-pixel text-zinc-500 block">INTEGRANTE 9</span>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Nick de Minecraft</label>
+                                <input type="text" id="cNick9" placeholder="Nick 9" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Discord</label>
+                                <input type="text" id="cDiscord9" placeholder="@discord9" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Integrante 10 -->
+                        <div id="boxIntegrante10" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3 hidden">
+                            <span class="text-xs font-pixel text-zinc-500 block">INTEGRANTE 10</span>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Nick de Minecraft</label>
+                                <input type="text" id="cNick10" placeholder="Nick 10" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 mb-1">Discord</label>
+                                <input type="text" id="cDiscord10" placeholder="@discord10" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-white focus:border-squidRosa focus:outline-none">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-pixel text-zinc-400 mb-2 uppercase tracking-wide">¿Qué contenido realizarán?</label>
+                        <select id="creatorActivity" class="w-full bg-zinc-900 border border-zinc-800 rounded px-4 py-3 text-sm text-white focus:outline-none focus:border-squidRosa transition cursor-pointer">
+                            <option value="Stream">Stream</option>
+                            <option value="Grabación">Grabación</option>
+                            <option value="Solo participar">Solo participar</option>
+                            <option value="Ambas">O ambas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 py-2">
+                    <input type="checkbox" id="terms" required class="accent-squidRosa w-4 h-4 rounded border-zinc-800 bg-zinc-900">
+                    <label for="terms" class="text-xs text-zinc-400 select-none">Acepto los términos, las reglas y asumo el riesgo de ser eliminado.</label>
+                </div>
+
+                <button type="submit" class="w-full bg-squidRosa hover:bg-rose-600 text-white font-pixel text-xs py-4 rounded border-b-4 border-rose-800 active:border-b-0 transition-all">
+                    ENVIAR ADMISIÓN
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="bg-zinc-950 border-t border-zinc-900 py-12 px-6 text-center text-zinc-600 text-xs">
+        <div class="max-w-6xl mx-auto space-y-4">
+            <span class="font-pixel text-squidRosa text-xs block tracking-widest">▲ ● ■</span>
+            <p>© 2026 Aleatory Squid Game - Evento de Minecraft hecho por fans.</p>
+            <p class="text-[10px] text-zinc-700">Este sitio no está afiliado ni avalado por Mojang AB, Microsoft, ni Netflix.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
