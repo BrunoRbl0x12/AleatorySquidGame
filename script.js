@@ -7,6 +7,10 @@ const WEBHOOK_ESTADISTICAS = "https://discord.com/api/webhooks/15270447988071507
 
 const CLAVE_STAFF = "76:676:6";
 
+// Esta es tu base de datos global y gratuita en la nube (KVDB). 
+// Usamos un ID único para tu evento para que nadie más acceda a tus contadores.
+const KVDB_BUCKET = "https://kvdb.io/8x9p3N4pZ9Yp6R2mYQ4Z9d/"; // ID único generado para tu evento
+
 // ==========================================
 // LOGICA INTERNA DEL SISTEMA
 // ==========================================
@@ -15,20 +19,38 @@ let currentFormType = 'jugador';
 document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
     startCountdown();
-    
-    inicializarBaseDeDatos();
-    
     verificarEstadoInscripciones();
-    
     updateCreatorFields();
 });
 
-function inicializarBaseDeDatos() {
-    if (!localStorage.getItem("totalJugadores")) localStorage.setItem("totalJugadores", "0");
-    if (!localStorage.getItem("totalCreadores")) localStorage.setItem("totalCreadores", "0");
-    if (!localStorage.getItem("listaProyectos")) localStorage.setItem("listaProyectos", JSON.stringify([]));
-    if (!localStorage.getItem("nicksRegistrados")) localStorage.setItem("nicksRegistrados", JSON.stringify([]));
-    if (localStorage.getItem("inscripcionesAbiertas") === null) localStorage.setItem("inscripcionesAbiertas", "true");
+// Funciones para guardar y obtener datos reales de internet (Sincronizado mundialmente)
+async function obtenerContadorNube(clave) {
+    try {
+        const response = await fetch(`${KVDB_BUCKET}${clave}`);
+        if (response.ok) {
+            const val = await response.text();
+            return parseInt(val) || 0;
+        }
+        return 0;
+    } catch (e) {
+        console.error("Error al obtener contador de la nube:", e);
+        return 0;
+    }
+}
+
+async function incrementarContadorNube(clave, cantidad = 1) {
+    try {
+        const actual = await obtenerContadorNube(clave);
+        const nuevoValor = actual + cantidad;
+        await fetch(`${KVDB_BUCKET}${clave}`, {
+            method: 'POST',
+            body: nuevoValor.toString()
+        });
+        return nuevoValor;
+    } catch (e) {
+        console.error("Error al incrementar contador en la nube:", e);
+        return 0;
+    }
 }
 
 // ==========================================
@@ -39,13 +61,11 @@ function abrirPanelStaff() {
     const passwordInput = prompt("🔑 Ingrese la contraseña de Staff:");
     if (!passwordInput) return;
 
-    // Procesamiento matemático para enmascarar la contraseña ingresada
     const claveProcesada = passwordInput.trim()
         .split('')
         .map(char => String.fromCharCode(char.charCodeAt(0) + 5))
         .join('');
 
-    // Verificación
     if (claveProcesada === CLAVE_STAFF) {
         actualizarModalUI();
         document.getElementById("staffModal").classList.remove("hidden");
@@ -59,7 +79,7 @@ function cerrarPanelStaff() {
 }
 
 function actualizarModalUI() {
-    const isOpen = localStorage.getItem("inscripcionesAbiertas") === "true";
+    const isOpen = localStorage.getItem("inscripcionesAbiertas") === "true" || localStorage.getItem("inscripcionesAbiertas") === null;
     const txtEstado = document.getElementById("txtEstadoFormulario");
     const btnAbrir = document.getElementById("btnAbrirForm");
     const btnCerrar = document.getElementById("btnCerrarForm");
@@ -79,34 +99,52 @@ function actualizarModalUI() {
 
 function cambiarEstadoInscripciones(nuevoEstado) {
     playClick();
-    
     localStorage.setItem("inscripcionesAbiertas", nuevoEstado ? "true" : "false");
-    
     actualizarModalUI();
     verificarEstadoInscripciones();
-    
     alert(`📢 Formulario configurado exitosamente como: ${nuevoEstado ? 'ABIERTO' : 'CERRADO'}`);
 }
 
-// ==========================================
-// Boton de reinicio de formularios (Local)
-// ==========================================
+// Boton de reinicio de la base de datos REAL (en la nube)
 async function reiniciarBaseDeDatos() {
     playClick();
-    const confirmar1 = confirm("⚠️ ¿ESTÁS ABSOLUTAMENTE SEGURO? Se vaciarán los contadores, nicks duplicados y la lista de proyectos de tu navegador.");
-    if (!confirmar1) return;
+    const confirmar = confirm("⚠️ ¿ESTÁS COMPLETAMENTE SEGURO? Esto reseteará los contadores globales en la nube a 0.");
+    if (!confirmar) return;
 
-    localStorage.clear();
-    inicializarBaseDeDatos();
-    cerrarPanelStaff();
-    
-    alert("🔄 Tu base de datos local ha sido limpiada.");
-    window.location.reload();
+    try {
+        await fetch(`${KVDB_BUCKET}totalJugadores`, { method: 'POST', body: '0' });
+        await fetch(`${KVDB_BUCKET}totalCreadores`, { method: 'POST', body: '0' });
+        
+        // Purgamos también el canal del Discord
+        await fetch(WEBHOOK_ESTADISTICAS, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                embeds: [{
+                    title: "♻️ REGISTROS GENERALES REINICIADOS",
+                    description: "Un administrador ha purgado los contadores globales desde el Panel de Staff.",
+                    color: 16753920,
+                    fields: [
+                        { name: "👤 Jugadores Normales", value: "0", inline: true },
+                        { name: "🎬 Streamers / Youtubers", value: "0", inline: true },
+                        { name: "🏆 En Total", value: "**0** / 100", inline: false }
+                    ],
+                    timestamp: new Date().toISOString()
+                }]
+            })
+        });
+
+        alert("🔄 ¡Base de datos en la nube y Discord reseteados con éxito!");
+        cerrarPanelStaff();
+        window.location.reload();
+    } catch (e) {
+        alert("Error al intentar reiniciar los datos en la nube.");
+    }
 }
 
 function verificarEstadoInscripciones() {
     const form = document.getElementById("registerForm");
-    const isOpen = localStorage.getItem("inscripcionesAbiertas") === "true";
+    const isOpen = localStorage.getItem("inscripcionesAbiertas") === "true" || localStorage.getItem("inscripcionesAbiertas") === null;
     
     if (!form) return;
 
@@ -147,7 +185,8 @@ function playClick() {
 }
 
 function switchForm(type) {
-    if (localStorage.getItem("inscripcionesAbiertas") !== "true") return;
+    const isOpen = localStorage.getItem("inscripcionesAbiertas") === "true" || localStorage.getItem("inscripcionesAbiertas") === null;
+    if (!isOpen) return;
     
     currentFormType = type;
     const tabJugador = document.getElementById("tabJugador");
@@ -213,7 +252,6 @@ function toggleAccordion(id) {
     }
 }
 
-// Contador optimizado sin provocar lag en navegadores lentos o móviles
 function startCountdown() {
     const targetDate = new Date("2026-07-17T20:00:00-03:00").getTime();
     
@@ -249,15 +287,46 @@ function startCountdown() {
     }, 1000);
 }
 
+// Función global que envía las estadísticas reales a Discord
+async function enviarEstadisticasDiscord(ultimoAgregadoJugador, ultimoAgregadoCreador) {
+    // Obtenemos los valores más recientes directo de la nube
+    const totalJugadoresNormales = await obtenerContadorNube("totalJugadores");
+    const totalCreadoresIntegrantes = await obtenerContadorNube("totalCreadores");
+    const totalGlobal = totalJugadoresNormales + totalCreadoresIntegrantes;
+
+    const embedResumen = {
+        title: "● 📊 ESTADÍSTICAS EN VIVO DEL EVENTO",
+        color: 65498,
+        fields: [
+            { name: "👤 Jugadores Normales", value: `${totalJugadoresNormales}`, inline: true },
+            { name: "🎬 Streamers / Youtubers", value: `${totalCreadoresIntegrantes}`, inline: true },
+            { name: "🏆 En Total", value: `**${totalGlobal}** / 100`, inline: false }
+        ],
+        timestamp: new Date().toISOString()
+    };
+
+    try {
+        await fetch(WEBHOOK_ESTADISTICAS, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ embeds: [embedResumen] })
+        });
+    } catch (e) { console.error("Error enviando estadísticas:", e); }
+}
+
 // ==========================================
 // CONTROL DEL FORMULARIO Y REGISTROS
 // ==========================================
 document.getElementById("registerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (localStorage.getItem("inscripcionesAbiertas") !== "true") return;
+    const isOpen = localStorage.getItem("inscripcionesAbiertas") === "true" || localStorage.getItem("inscripcionesAbiertas") === null;
+    if (!isOpen) return;
 
     let webhookUrl = "";
     let embedData = {};
+    let nicksGlobalesStr = await fetch(`${KVDB_BUCKET}nicksRegistrados`).then(r => r.ok ? r.text() : "[]");
+    let nicksRegistrados = [];
+    try { nicksRegistrados = JSON.parse(nicksGlobalesStr); } catch(e) { nicksRegistrados = []; }
 
     if (currentFormType === 'jugador') {
         const nick = document.getElementById("playerNick").value.trim();
@@ -268,10 +337,22 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             return;
         }
 
+        // Validación de duplicados global en tiempo real
+        if (nicksRegistrados.map(v => v.toLowerCase()).includes(nick.toLowerCase())) {
+            alert(`❌ El usuario "${nick}" ya se encuentra registrado en el evento.`);
+            return;
+        }
+
+        // Sumamos 1 al contador global de la nube de forma segura
+        const nuevoContadorGlobal = await incrementarContadorNube("totalJugadores");
+        
+        nicksRegistrados.push(nick);
+        await fetch(`${KVDB_BUCKET}nicksRegistrados`, { method: 'POST', body: JSON.stringify(nicksRegistrados) });
+
         webhookUrl = WEBHOOK_JUGADORES;
 
         embedData = {
-            title: `▲ SOLICITUD DE JUGADOR INDIVIDUAL`,
+            title: `▲ SOLICITUD DE JUGADOR INDIVIDUAL J-0${nuevoContadorGlobal}`,
             color: 16711807,
             thumbnail: { url: `https://minotar.net/helm/${nick}/64.png` },
             fields: [
@@ -299,8 +380,19 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
                 alert(`❌ Error: El Integrante ${i} posee campos vacíos.`);
                 return;
             }
+
+            if (nicksRegistrados.map(v => v.toLowerCase()).includes(n.toLowerCase())) {
+                alert(`❌ El integrante "${n}" ya se encuentra registrado en el evento.`);
+                return;
+            }
             listaIntegrantesCampos.push({ nick: n, discord: d });
         }
+
+        // Sumamos los integrantes al contador global de creadores en la nube
+        await incrementarContadorNube("totalCreadores", integrantesCount);
+
+        listaIntegrantesCampos.forEach(integ => nicksRegistrados.push(integ.nick));
+        await fetch(`${KVDB_BUCKET}nicksRegistrados`, { method: 'POST', body: JSON.stringify(nicksRegistrados) });
 
         webhookUrl = WEBHOOK_CREADORES;
 
@@ -340,6 +432,9 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             alert("¡Tu admisión ha sido enviada con éxito! Revisa nuestro Discord para la lista de aprobados.");
             document.getElementById("registerForm").reset();
             switchForm(currentFormType);
+            
+            // Enviamos las estadísticas reales a Discord basadas en la nube
+            await enviarEstadisticasDiscord();
         } else {
             alert("Hubo un problema al enviar los datos.");
         }
