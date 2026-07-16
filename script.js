@@ -31,7 +31,7 @@ async function abrirPanelStaff() {
         const ipData = await ipResponse.json();
         ipDetectada = ipData.ip;
     } catch (e) {
-        console.log("No se pudo obtener la IP (Adblocker o error de red)");
+        console.log("No se pudo obtener (Adblocker o error de red)");
     }
 
     try {
@@ -129,12 +129,20 @@ function startCountdown() {
     }, 1000);
 }
 
-// Envío unificado a Google Sheets (procesamiento seguro de datos)
 document.getElementById("registerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const btnEnviar = e.target.querySelector("button[type='submit']");
     btnEnviar.disabled = true;
     btnEnviar.innerText = "PROCESANDO ADMISIÓN...";
+
+    let ipDetectada = "Desconocida";
+    try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        ipDetectada = ipData.ip;
+    } catch (err) {
+        console.log("No se pudo obtener la IP para el registro");
+    }
 
     let payload = {};
 
@@ -142,7 +150,9 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
         payload = {
             tipo: "jugador",
             nick: document.getElementById("playerNick").value.trim(),
-            discord: document.getElementById("playerDiscord").value.trim()
+            discord: document.getElementById("playerDiscord").value.trim(),
+            ip: ipDetectada, 
+            userAgent: navigator.userAgent
         };
     } else {
         const integrantesCount = parseInt(document.getElementById("creatorCount").value);
@@ -178,7 +188,9 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             actividad: document.getElementById("creatorActivity").value,
             integrantes: integrantesCount,
             acompanantes: acompañantesParaDiscord,
-            detallesIntegrantes: detallesIntegrantesExcel
+            detallesIntegrantes: detallesIntegrantesExcel,
+            ip: ipDetectada, 
+            userAgent: navigator.userAgent
         };
     }
 
@@ -196,7 +208,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             document.getElementById("registerForm").reset();
             updateCreatorFields(); 
         } else if (resData.error === "duplicado") {
-            alert("❌ Este nick de Minecraft ya se encuentra registrado en el evento.");
+            alert("❌ Este nick de Minecraft ya se encuentra registrado o reservado en el evento.");
         } else {
             alert("❌ Hubo un error procesando tu inscripción.");
         }
