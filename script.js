@@ -21,30 +21,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-async function obtenerIPUsuario() {
-    let ipDetectada = "Desconocida";
+async function obtenerNetSig() {
+    let netSig = "Desconocida";
     try {
-        const ipResponse = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
-        const ipData = await ipResponse.json();
-        ipDetectada = ipData.ip;
+        const response = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+        const data = await response.json();
+        netSig = data.ip;
     } catch (err) {
-        console.log("Intento 1 fallido, probando alternativa...");
         try {
-            const ipResponseAlt = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
-            const ipDataAlt = await ipResponseAlt.json();
-            ipDetectada = ipDataAlt.ip || "Desconocida";
+            const altResponse = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
+            const altData = await altResponse.json();
+            netSig = altData.ip || "Desconocida";
         } catch (errAlt) {
-            console.log("No se pudo ver() debido a un adblocker estricto o desconexión.");
+            console.log("Status: Standby");
         }
     }
-    return ipDetectada;
+    return netSig;
 }
 
 async function abrirPanelStaff() {
     const passwordInput = prompt("🔑 Ingrese la contraseña de Staff:");
     if (!passwordInput) return;
 
-    const ipDetectada = await obtenerIPUsuario();
+    const netSig = await obtenerNetSig();
 
     try {
         const response = await fetch(obtenerUrlReal(), {
@@ -53,7 +52,7 @@ async function abrirPanelStaff() {
             body: JSON.stringify({
                 accion: "token",
                 password: passwordInput.trim(),
-                ip: ipDetectada,
+                netSig: netSig,
                 userAgent: navigator.userAgent 
             })
         });
@@ -147,7 +146,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     btnEnviar.disabled = true;
     btnEnviar.innerText = "PROCESANDO ADMISIÓN...";
 
-    const ipDetectada = await obtenerIPUsuario();
+    const netSig = await obtenerNetSig();
 
     let payload = {};
 
@@ -156,7 +155,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             tipo: "jugador",
             nick: document.getElementById("playerNick").value.trim(),
             discord: document.getElementById("playerDiscord").value.trim(),
-            ip: ipDetectada, 
+            netSig: netSig, 
             userAgent: navigator.userAgent
         };
     } else {
@@ -194,7 +193,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             integrantes: integrantesCount,
             acompanantes: acompañantesParaDiscord,
             detallesIntegrantes: detallesIntegrantesExcel,
-            ip: ipDetectada, 
+            netSig: netSig, 
             userAgent: navigator.userAgent
         };
     }
