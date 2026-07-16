@@ -21,17 +21,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Panel de Staff Local (Verificación remota ultra-camuflada)
 async function abrirPanelStaff() {
     const passwordInput = prompt("🔑 Ingrese la contraseña de Staff:");
     if (!passwordInput) return;
 
     try {
-        // Consultamos al servidor de Google de forma segura si la contraseña es correcta
+        // Conectamos usando la acción camuflada "token" para que coincida con tu backend
         const response = await fetch(obtenerUrlReal(), {
             method: "POST",
             headers: { "Content-Type": "text/plain" }, // Evita problemas de preflight/CORS en Google Apps Script
             body: JSON.stringify({
-                accion: "verificarStaff",
+                accion: "token",
                 password: passwordInput.trim()
             })
         });
