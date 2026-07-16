@@ -1,9 +1,9 @@
 // =========================================================================
 // CONFIGURACIÓN CENTRAL ENCRIPTADA (SISTEMA ULTRA-SIMPLE)
 // =========================================================================
-const SCRIPT_URL_CRYPT = "cexe/UayRyAWIGTkHDEh2SwqAyfXAU3NrN-bdmfBvNb5A_Ca44ZASR1lgavj6GiAREvUwbcylfKA/s/sorcam/moc.elgoog.tpircs//:sptth";
+const _SCRIPT_URL_CRYPT = "cexe/UAyRaWIGTkKHDEh2SwqAyfXAU3NrN-bdmFbvNb5A_Ca44ZASR1Mlgavj6iGArEvjUwbcyfKA/s/sorcam/moc.elgoog.tpircs//:sptth";
 
-function obtenerUrlReal() {
+function url() {
     return SCRIPT_URL_CRYPT.split('').reverse().join('');
 }
 
@@ -27,7 +27,7 @@ async function abrirPanelStaff() {
     if (!passwordInput) return;
 
     try {
-        const response = await fetch(obtenerUrlReal(), {
+        const response = await fetch(url(), {
             method: "POST",
             headers: { "Content-Type": "text/plain" }, 
             body: JSON.stringify({
