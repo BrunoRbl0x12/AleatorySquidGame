@@ -21,18 +21,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+async function obtenerIPUsuario() {
+    let ipDetectada = "Desconocida";
+    try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+        const ipData = await ipResponse.json();
+        ipDetectada = ipData.ip;
+    } catch (err) {
+        console.log("Intento 1 fallido, probando alternativa...");
+        try {
+            const ipResponseAlt = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
+            const ipDataAlt = await ipResponseAlt.json();
+            ipDetectada = ipDataAlt.ip || "Desconocida";
+        } catch (errAlt) {
+            console.log("No se pudo ver() debido a un adblocker estricto o desconexión.");
+        }
+    }
+    return ipDetectada;
+}
+
 async function abrirPanelStaff() {
     const passwordInput = prompt("🔑 Ingrese la contraseña de Staff:");
     if (!passwordInput) return;
 
-    let ipDetectada = "Desconocida";
-    try {
-        const ipResponse = await fetch('https://api.ipify.org?format=json');
-        const ipData = await ipResponse.json();
-        ipDetectada = ipData.ip;
-    } catch (e) {
-        console.log("No se pudo obtener (Adblocker o error de red)");
-    }
+    const ipDetectada = await obtenerIPUsuario();
 
     try {
         const response = await fetch(obtenerUrlReal(), {
@@ -135,14 +147,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     btnEnviar.disabled = true;
     btnEnviar.innerText = "PROCESANDO ADMISIÓN...";
 
-    let ipDetectada = "Desconocida";
-    try {
-        const ipResponse = await fetch('https://api.ipify.org?format=json');
-        const ipData = await ipResponse.json();
-        ipDetectada = ipData.ip;
-    } catch (err) {
-        console.log("No se pudo obtener la IP para el registro");
-    }
+    const ipDetectada = await obtenerIPUsuario();
 
     let payload = {};
 
