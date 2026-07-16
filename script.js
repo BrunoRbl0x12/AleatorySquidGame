@@ -1,11 +1,10 @@
 // ==========================================
-// CONFIGURACIÓN CENTRAL ENCRIPTADA (SISTEMA BASE64)
+// CONFIGURACIÓN CENTRAL ENCRIPTADA (SISTEMA ULTRA-SIMPLE)
 // ==========================================
-const GOOGLE_SCRIPT_URL_CRYPT = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J3VWp2RXJBR2k2anZhZ2xNMVJTRVo0NGEvQTViTnZiRm1kYi1Ock4zVUF4ZnlBcXdTMmhFREhLa1RHSVdhUnlBVS9leGVj";
+const GOOGLE_SCRIPT_URL_CRYPT = "cexe/UAyRaWIGTkHDEh2SwqAyfXAU3NrN-bdmfBvNb5A_Ca44ZASR1lgavj6GiAREvUwbcylfKA/s/sorcam/moc.elgoog.tpircs//:sptth";
 
 function obtenerUrlReal() {
-    // Decodifica la URL de forma nativa y ultra-segura
-    return atob(GOOGLE_SCRIPT_URL_CRYPT);
+    return GOOGLE_SCRIPT_URL_CRYPT.split('').reverse().join('');
 }
 
 let currentFormType = 'jugador';
@@ -22,7 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Panel de Staff Local (Verificación remota ultra-camuflada)
 async function abrirPanelStaff() {
     const passwordInput = prompt("🔑 Ingrese la contraseña de Staff:");
     if (!passwordInput) return;
@@ -30,11 +28,7 @@ async function abrirPanelStaff() {
     try {
         const response = await fetch(obtenerUrlReal(), {
             method: "POST",
-            mode: "cors", // Permitimos CORS para que Google nos responda el JSON de éxito
-            redirect: "follow", // ¡CRUCIAL! Obliga al navegador a seguir la redirección interna de Google
-            headers: { 
-                "Content-Type": "text/plain" 
-            }, 
+            headers: { "Content-Type": "text/plain" }, 
             body: JSON.stringify({
                 accion: "token",
                 password: passwordInput.trim()
@@ -143,7 +137,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
         const liderNick = document.getElementById("cNick1").value.trim();
         const liderDiscord = document.getElementById("cDiscord1").value.trim();
 
-        let acompanantesParaDiscord = [];
+        let acompañantesParaDiscord = [];
         let otrosIntegrantesTexto = [];
 
         for (let i = 2; i <= integrantesCount; i++) {
@@ -154,7 +148,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             const d = dInput ? dInput.value.trim() : "";
             
             if (n && d) {
-                acompanantesParaDiscord.push({ nick: n, discord: d });
+                acompañantesParaDiscord.push({ nick: n, discord: d });
                 otrosIntegrantesTexto.push(`${n} (${d})`);
             }
         }
@@ -170,17 +164,14 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             canal: document.getElementById("creatorChannel").value.trim(),
             actividad: document.getElementById("creatorActivity").value,
             integrantes: integrantesCount,
-            acompanantes: acompanantesParaDiscord,
+            acompanantes: acompañantesParaDiscord,
             detallesIntegrantes: detallesIntegrantesExcel
         };
     }
 
     try {
-        // Usamos mode: "cors" y redirect: "follow" para que procese correctamente la respuesta de Google Sheets
         const response = await fetch(obtenerUrlReal(), {
             method: "POST",
-            mode: "cors", 
-            redirect: "follow",
             headers: { "Content-Type": "text/plain" },
             body: JSON.stringify(payload)
         });
