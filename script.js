@@ -1,7 +1,7 @@
 // ==========================================
 // CONFIGURACIÓN CENTRAL ENCRIPTADA
 // ==========================================
-const GOOGLE_SCRIPT_URL_CRYPT = "mvyux3__xhwnuy1ltrjqj1htr_rfhwtx_x_FPk~hgb\\\\LayoutFL;oaflR6XF44fH_F5bNa|Kria2SyStY_Xk~FvyX2mJIINRqyFLmBnWF";
+const GOOGLE_SCRIPT_URL_CRYPT = "mvyux3__xhwnuy1ltrjqj1htr_rfhwtx_x_FPk~hgb\Z|jJwFLn6j|fsqR1WXFe99fH_F5bNa|Kria_NuN3ZFCk~Fvy\vyX7mJIINRqyFLbF|F_";
 
 function obtenerUrlReal() {
     return GOOGLE_SCRIPT_URL_CRYPT.split('').map(char => String.fromCharCode(char.charCodeAt(0) - 5)).join('');
