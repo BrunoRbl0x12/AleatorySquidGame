@@ -2,7 +2,7 @@
 // CONFIGURACIÓN CENTRAL
 // ==========================================
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwUjvErAGi6jvaglM1RSAZ44aC_A5bNvbFmdb-NrN3UAXfyAqwS2hEDHKkTGIWaRyAU/exec"; 
-const CLAVE_STAFF = "76:676:6";
+const CLAVE_STAFF = "76:676:nV\\JV\\J";
 
 let currentFormType = 'jugador';
 
