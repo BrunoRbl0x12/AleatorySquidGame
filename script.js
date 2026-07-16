@@ -1,10 +1,10 @@
-// ==========================================
+// =========================================================================
 // CONFIGURACIÓN CENTRAL ENCRIPTADA (SISTEMA ULTRA-SIMPLE)
-// ==========================================
-const GOOGLE_SCRIPT_URL_CRYPT = "cexe/UAyRaWIGTkHDEh2SwqAyfXAU3NrN-bdmfBvNb5A_Ca44ZASR1lgavj6GiAREvUwbcylfKA/s/sorcam/moc.elgoog.tpircs//:sptth";
+// =========================================================================
+const SCRIPT_URL_CRYPT = "cexe/UayRyAWIGTkHDEh2SwqAyfXAU3NrN-bdmfBvNb5A_Ca44ZASR1lgavj6GiAREvUwbcylfKA/s/sorcam/moc.elgoog.tpircs//:sptth";
 
 function obtenerUrlReal() {
-    return GOOGLE_SCRIPT_URL_CRYPT.split('').reverse().join('');
+    return SCRIPT_URL_CRYPT.split('').reverse().join('');
 }
 
 let currentFormType = 'jugador';
@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Panel de Staff Local (Validación segura de contraseña directamente en el servidor de Google)
 async function abrirPanelStaff() {
     const passwordInput = prompt("🔑 Ingrese la contraseña de Staff:");
     if (!passwordInput) return;
@@ -49,7 +50,9 @@ async function abrirPanelStaff() {
     }
 }
 
-function cerrarPanelStaff() { document.getElementById("staffModal").classList.add("hidden"); }
+function cerrarPanelStaff() { 
+    document.getElementById("staffModal").classList.add("hidden"); 
+}
 
 function actualizarModalUI() {
     const isOpen = localStorage.getItem("inscripcionesAbiertas") === "true" || localStorage.getItem("inscripcionesAbiertas") === null;
@@ -148,7 +151,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             const d = dInput ? dInput.value.trim() : "";
             
             if (n && d) {
-                acompañantesParaDiscord.push({ nick: n, discord: d });
+                acompanantesParaDiscord.push({ nick: n, discord: d });
                 otrosIntegrantesTexto.push(`${n} (${d})`);
             }
         }
