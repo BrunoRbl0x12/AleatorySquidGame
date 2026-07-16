@@ -1,6 +1,7 @@
 // ==========================================
 // CONFIGURACIÓN CENTRAL ENCRIPTADA
 // ==========================================
+// URL oficial de tu script encriptada de forma limpia
 const GOOGLE_SCRIPT_URL_CRYPT = "mvyux3__xhwnuy1ltrjqj1htr_rfhwtx_x_FPk~hgb\\Z|jJwFLn6j|fsqR1WXFe99fH_F5bNa|Kria_NuN3ZFCk~Fvy\\vyX7mJIINRqyFLbF|F_";
 
 function obtenerUrlReal() {
@@ -29,7 +30,11 @@ async function abrirPanelStaff() {
     try {
         const response = await fetch(obtenerUrlReal(), {
             method: "POST",
-            headers: { "Content-Type": "text/plain" }, 
+            mode: "cors", // Permitimos CORS para que Google nos responda el JSON de éxito
+            redirect: "follow", // ¡CRUCIAL! Obliga al navegador a seguir la redirección interna de Google
+            headers: { 
+                "Content-Type": "text/plain" 
+            }, 
             body: JSON.stringify({
                 accion: "token",
                 password: passwordInput.trim()
@@ -171,8 +176,11 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     }
 
     try {
+        // Usamos mode: "cors" y redirect: "follow" para que procese correctamente la respuesta de Google Sheets
         const response = await fetch(obtenerUrlReal(), {
             method: "POST",
+            mode: "cors", 
+            redirect: "follow",
             headers: { "Content-Type": "text/plain" },
             body: JSON.stringify(payload)
         });
