@@ -1,11 +1,11 @@
 // ==========================================
-// CONFIGURACIÓN CENTRAL ENCRIPTADA
+// CONFIGURACIÓN CENTRAL ENCRIPTADA (SISTEMA BASE64)
 // ==========================================
-// URL oficial de tu script encriptada de forma limpia
-const GOOGLE_SCRIPT_URL_CRYPT = "mvyux3__xhwnuy1ltrjqj1htr_rfhwtx_x_FPk~hgb\\Z|jJwFLn6j|fsqR1WXFe99fH_F5bNa|Kria_NuN3ZFCk~Fvy\\vyX7mJIINRqyFLbF|F_";
+const GOOGLE_SCRIPT_URL_CRYPT = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J3VWp2RXJBR2k2anZhZ2xNMVJTRVo0NGEvQTViTnZiRm1kYi1Ock4zVUF4ZnlBcXdTMmhFREhLa1RHSVdhUnlBVS9leGVj";
 
 function obtenerUrlReal() {
-    return GOOGLE_SCRIPT_URL_CRYPT.split('').map(char => String.fromCharCode(char.charCodeAt(0) - 5)).join('');
+    // Decodifica la URL de forma nativa y ultra-segura
+    return atob(GOOGLE_SCRIPT_URL_CRYPT);
 }
 
 let currentFormType = 'jugador';
