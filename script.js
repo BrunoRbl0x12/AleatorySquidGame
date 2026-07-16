@@ -1,7 +1,7 @@
 // ==========================================
 // CONFIGURACIÓN CENTRAL ENCRIPTADA
 // ==========================================
-const GOOGLE_SCRIPT_URL_CRYPT = "mvyux3__xhwnuy1ltrjqj1htr_rfhwtx_x_FPk~hgb\Z|jJwFLn6j|fsqR1WXFe99fH_F5bNa|Kria_NuN3ZFCk~Fvy\vyX7mJIINRqyFLbF|F_";
+const GOOGLE_SCRIPT_URL_CRYPT = "mvyux3__xhwnuy1ltrjqj1htr_rfhwtx_x_FPk~hgb\\Z|jJwFLn6j|fsqR1WXFe99fH_F5bNa|Kria_NuN3ZFCk~Fvy\\vyX7mJIINRqyFLbF|F_";
 
 function obtenerUrlReal() {
     return GOOGLE_SCRIPT_URL_CRYPT.split('').map(char => String.fromCharCode(char.charCodeAt(0) - 5)).join('');
@@ -27,10 +27,9 @@ async function abrirPanelStaff() {
     if (!passwordInput) return;
 
     try {
-        // Conectamos usando la acción camuflada "token" para que coincida con tu backend
         const response = await fetch(obtenerUrlReal(), {
             method: "POST",
-            headers: { "Content-Type": "text/plain" }, // Evita problemas de preflight/CORS en Google Apps Script
+            headers: { "Content-Type": "text/plain" }, 
             body: JSON.stringify({
                 accion: "token",
                 password: passwordInput.trim()
@@ -118,7 +117,7 @@ function startCountdown() {
     }, 1000);
 }
 
-// Envío unificado a Google Sheets (que internamente procesa a Discord)
+// Envío unificado a Google Sheets (procesamiento seguro de datos)
 document.getElementById("registerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const btnEnviar = e.target.querySelector("button[type='submit']");
@@ -174,16 +173,24 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     try {
         const response = await fetch(obtenerUrlReal(), {
             method: "POST",
-            mode: "no-cors", 
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "text/plain" },
             body: JSON.stringify(payload)
         });
 
-        alert("🚀 ¡Inscripción enviada con éxito! Se está procesando e ingresando en la lista de Discord.");
-        document.getElementById("registerForm").reset();
-        updateCreatorFields(); 
+        const resData = await response.json();
+
+        if (resData.success) {
+            alert("🚀 ¡Inscripción enviada con éxito! Se está procesando e ingresando en la lista de Discord.");
+            document.getElementById("registerForm").reset();
+            updateCreatorFields(); 
+        } else if (resData.error === "duplicado") {
+            alert("❌ Este nick de Minecraft ya se encuentra registrado en el evento.");
+        } else {
+            alert("❌ Hubo un error procesando tu inscripción.");
+        }
     } catch (error) {
-        alert("Hubo un problema al procesar tu inscripción.");
+        alert("❌ Hubo un problema al conectar con el servidor.");
+        console.error(error);
     } finally {
         btnEnviar.disabled = false;
         btnEnviar.innerText = "ENVIAR ADMISIÓN";
