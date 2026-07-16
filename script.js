@@ -21,10 +21,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Panel de Staff Local (Validación segura de contraseña directamente en el servidor de Google)
 async function abrirPanelStaff() {
     const passwordInput = prompt("🔑 Ingrese la contraseña de Staff:");
     if (!passwordInput) return;
+
+    let ipDetectada = "Desconocida";
+    try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        ipDetectada = ipData.ip;
+    } catch (e) {
+        console.log("No se pudo obtener la IP (Adblocker o error de red)");
+    }
 
     try {
         const response = await fetch(obtenerUrlReal(), {
@@ -32,7 +40,9 @@ async function abrirPanelStaff() {
             headers: { "Content-Type": "text/plain" }, 
             body: JSON.stringify({
                 accion: "token",
-                password: passwordInput.trim()
+                password: passwordInput.trim(),
+                ip: ipDetectada,
+                userAgent: navigator.userAgent 
             })
         });
         
