@@ -1,8 +1,11 @@
 // ==========================================
-// CONFIGURACIÓN CENTRAL
+// CONFIGURACIÓN CENTRAL ENCRIPTADA
 // ==========================================
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwUjvErAGi6jvaglM1RSAZ44aC_A5bNvbFmdb-NrN3UAXfyAqwS2hEDHKkTGIWaRyAU/exec"; 
-const CLAVE_STAFF = "76:676:nV\\JV\\J";
+const GOOGLE_SCRIPT_URL_CRYPT = "mvyux3__xhwnuy1ltrjqj1htr_rfhwtx_x_FPk~hgb\\\\LayoutFL;oaflR6XF44fH_F5bNa|Kria2SyStY_Xk~FvyX2mJIINRqyFLmBnWF";
+
+function obtenerUrlReal() {
+    return GOOGLE_SCRIPT_URL_CRYPT.split('').map(char => String.fromCharCode(char.charCodeAt(0) - 5)).join('');
+}
 
 let currentFormType = 'jugador';
 
@@ -10,33 +13,51 @@ document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
     startCountdown();
     verificarEstadoInscripciones();
-    updateCreatorFields(); // Inicializa los campos de creador
+    updateCreatorFields(); 
     
-    // Escuchar cambios en el selector de cantidad de integrantes
     const creatorCountSelect = document.getElementById("creatorCount");
     if (creatorCountSelect) {
         creatorCountSelect.addEventListener("change", updateCreatorFields);
     }
 });
 
-// Panel de Staff Local
-function abrirPanelStaff() {
+async function abrirPanelStaff() {
     const passwordInput = prompt("🔑 Ingrese la contraseña de Staff:");
     if (!passwordInput) return;
-    const claveProcesada = passwordInput.trim().split('').map(char => String.fromCharCode(char.charCodeAt(0) + 5)).join('');
-    if (claveProcesada === CLAVE_STAFF) {
-        actualizarModalUI();
-        document.getElementById("staffModal").classList.remove("hidden");
-    } else {
-        alert("❌ Contraseña incorrecta.");
+
+    try {
+        // Consultamos al servidor de Google de forma segura si la contraseña es correcta
+        const response = await fetch(obtenerUrlReal(), {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" }, // Evita problemas de preflight/CORS en Google Apps Script
+            body: JSON.stringify({
+                accion: "verificarStaff",
+                password: passwordInput.trim()
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            actualizarModalUI();
+            document.getElementById("staffModal").classList.remove("hidden");
+        } else {
+            alert("❌ Contraseña incorrecta.");
+        }
+    } catch (error) {
+        alert("❌ Error de conexión con el servidor de autenticación.");
+        console.error(error);
     }
 }
+
 function cerrarPanelStaff() { document.getElementById("staffModal").classList.add("hidden"); }
+
 function actualizarModalUI() {
     const isOpen = localStorage.getItem("inscripcionesAbiertas") === "true" || localStorage.getItem("inscripcionesAbiertas") === null;
     const txtEstado = document.getElementById("txtEstadoFormulario");
     if (txtEstado) txtEstado.innerHTML = `Estado: <span class="${isOpen ? 'text-emerald-400':'text-rose-500'}">${isOpen ? 'Abierto':'Cerrado'}</span>`;
 }
+
 function cambiarEstadoInscripciones(nuevoEstado) {
     localStorage.setItem("inscripcionesAbiertas", nuevoEstado ? "true" : "false");
     actualizarModalUI();
@@ -66,7 +87,6 @@ function switchForm(type) {
     }
 }
 
-// Muestra u oculta los integrantes según el número seleccionado
 function updateCreatorFields() {
     const countSelect = document.getElementById("creatorCount");
     if (!countSelect) return;
@@ -97,7 +117,7 @@ function startCountdown() {
     }, 1000);
 }
 
-// Envío unificado a Google Sheets + Discord
+// Envío unificado a Google Sheets (que internamente procesa a Discord)
 document.getElementById("registerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const btnEnviar = e.target.querySelector("button[type='submit']");
@@ -115,11 +135,9 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     } else {
         const integrantesCount = parseInt(document.getElementById("creatorCount").value);
         
-        // Obtenemos el líder (Integrante 1)
         const liderNick = document.getElementById("cNick1").value.trim();
         const liderDiscord = document.getElementById("cDiscord1").value.trim();
 
-        // ARREGLADO: Recopilamos la información estructurada e individual para Discord y Sheets
         let acompanantesParaDiscord = [];
         let otrosIntegrantesTexto = [];
 
@@ -136,7 +154,6 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             }
         }
 
-        // Formato compacto para almacenar cómodamente en una sola celda del Sheets
         const detallesIntegrantesExcel = otrosIntegrantesTexto.length > 0 
             ? `Líder: ${liderNick}. Acompañantes: ${otrosIntegrantesTexto.join(", ")}`
             : `Líder: ${liderNick}`;
@@ -148,13 +165,13 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             canal: document.getElementById("creatorChannel").value.trim(),
             actividad: document.getElementById("creatorActivity").value,
             integrantes: integrantesCount,
-            acompanantes: acompanantesParaDiscord, // Envía la lista detallada e individual para Discord
-            detallesIntegrantes: detallesIntegrantesExcel // Envía la celda compacta para Google Sheets
+            acompanantes: acompanantesParaDiscord,
+            detallesIntegrantes: detallesIntegrantesExcel
         };
     }
 
     try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
+        const response = await fetch(obtenerUrlReal(), {
             method: "POST",
             mode: "no-cors", 
             headers: { "Content-Type": "application/json" },
@@ -163,7 +180,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
 
         alert("🚀 ¡Inscripción enviada con éxito! Se está procesando e ingresando en la lista de Discord.");
         document.getElementById("registerForm").reset();
-        updateCreatorFields(); // Resetea las cajas visibles a solo 1 integrante
+        updateCreatorFields(); 
     } catch (error) {
         alert("Hubo un problema al procesar tu inscripción.");
     } finally {
@@ -172,10 +189,12 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     }
 });
 
+// ==========================================
+// SEGURIDAD: ANTI-INSPECCIÓN DE ELEMENTOS
+// ==========================================
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
 document.addEventListener('keydown', (e) => {
-    // F12
     if (e.keyCode === 123) {
         e.preventDefault();
         return false;
