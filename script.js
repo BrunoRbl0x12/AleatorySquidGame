@@ -1,10 +1,10 @@
-// ==========================================
-// CONFIGURACIÓN CENTRAL ENCRIPTADA
-// ==========================================
-const GOOGLE_SCRIPT_URL_CRYPT = "mvyux3__xhwnuy1ltrjqj1htr_rfhwtx_x_FPk~hgb\\\\LayoutFL;oaflR6XF44fH_F5bNa|Kria2SyStY_Xk~FvyX2mJIINRqyFLmBnWF";
+// =========================================================================
+// CONFIGURACIÓN CENTRAL (LINK REAL DIRECTO)
+// =========================================================================
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwUjvErAGi6jvaglM1RSAZ44aC_A5bNvbFmdb-NrN3UAXfyAqwS2hEDHKkTGIWaRyAU/exec";
 
 function obtenerUrlReal() {
-    return GOOGLE_SCRIPT_URL_CRYPT.split('').map(char => String.fromCharCode(char.charCodeAt(0) - 5)).join('');
+    return GOOGLE_SCRIPT_URL;
 }
 
 let currentFormType = 'jugador';
@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Panel de Staff Local (Verificación remota ultra-camuflada)
+// Panel de Staff Local (Validación segura de contraseña directamente en el servidor de Google)
 async function abrirPanelStaff() {
     const passwordInput = prompt("🔑 Ingrese la contraseña de Staff:");
     if (!passwordInput) return;
@@ -50,7 +50,9 @@ async function abrirPanelStaff() {
     }
 }
 
-function cerrarPanelStaff() { document.getElementById("staffModal").classList.add("hidden"); }
+function cerrarPanelStaff() { 
+    document.getElementById("staffModal").classList.add("hidden"); 
+}
 
 function actualizarModalUI() {
     const isOpen = localStorage.getItem("inscripcionesAbiertas") === "true" || localStorage.getItem("inscripcionesAbiertas") === null;
@@ -138,7 +140,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
         const liderNick = document.getElementById("cNick1").value.trim();
         const liderDiscord = document.getElementById("cDiscord1").value.trim();
 
-        let acompanantesParaDiscord = [];
+        let acompañantesParaDiscord = [];
         let otrosIntegrantesTexto = [];
 
         for (let i = 2; i <= integrantesCount; i++) {
@@ -165,13 +167,12 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
             canal: document.getElementById("creatorChannel").value.trim(),
             actividad: document.getElementById("creatorActivity").value,
             integrantes: integrantesCount,
-            acompanantes: acompanantesParaDiscord,
+            acompanantes: acompañantesParaDiscord,
             detallesIntegrantes: detallesIntegrantesExcel
         };
     }
 
     try {
-        // Quitamos "mode: no-cors" y enviamos como text/plain para evitar bloqueos CORS en Google Apps Script
         const response = await fetch(obtenerUrlReal(), {
             method: "POST",
             headers: { "Content-Type": "text/plain" },
