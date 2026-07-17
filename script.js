@@ -128,7 +128,7 @@ function updateCreatorFields() {
 }
 
 function startCountdown() {
-    const targetDate = new Date("2026-07-18T08:00:00-03:00").getTime();
+    const targetDate = new Date("2026-07-18T20:00:00-03:00").getTime();
     setInterval(() => {
         const now = new Date().getTime();
         const diff = targetDate - now;
